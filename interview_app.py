@@ -1,9 +1,8 @@
 import pickle
-# we are going to use the flask micro web framework
+# we are going to use the Flask micro web framework
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-
 
 def load_model():
     # unpickle header and tree in tree.p
@@ -11,7 +10,6 @@ def load_model():
     header, tree = pickle.load(infile)
     infile.close()
     return header, tree
-
 
 def tdidt_predict(header, tree, instance):
     info_type = tree[0]
@@ -23,34 +21,41 @@ def tdidt_predict(header, tree, instance):
         if value_list[1] == instance[att_index]:
             return tdidt_predict(header, value_list[2], instance)
         
-
 # we need to add some routes!
 # a "route" is a function that handles a request
 # e.g. for the HTML content for a home page
 # or for the JSON response for a /predict API endpoint, etc
+@app.route("/")
+def index():
+    # return content and status code
+    return "<h1>Welcome to the interview predictor app</h1>", 200
+        
+
+# lets add a route for the /predict endpoint
 @app.route("/predict")
 def predict():
-    # return content and status code
+    # lets parse the unseen instance values from the query string
     # they are in the request object
-    level = request.args.get("level")
+    level = request.args.get("level") # defaults to None
     lang = request.args.get("lang")
-    tweets = request.args.get(("tweets"))
+    tweets = request.args.get("tweets")
     phd = request.args.get("phd")
-    instance = {level, lang, tweets, phd}
+    instance = [level, lang, tweets, phd]
     header, tree = load_model()
-    # let's make a prediction!
+    # lets make a prediction!
     pred = tdidt_predict(header, tree, instance)
     if pred is not None:
-        return jsonify({"predicition": pred}), 200
-    # something went wrong!
-    return "Error making a prediction", 100
+        return jsonify({"prediction": pred}), 200
+    # something went wrong!!
+    return "Error making a prediction", 400
 
-# let's add a route for the /predict endpoint
 
 if __name__ == "__main__":
-    # header,tree = load_model()
+    # header, tree = load_model()
     # print(header)
     # print(tree)
-    app.run(post = ["0", "0", "0", "0", port=5001, debug=False])
-    #TODO: when display app is "production", set debug=false
-    # and flask host and port value
+    app.run(host="0.0.0.0", port=5001, debug=False)
+    # TODO: when deploy app to "production", set debug=False
+    # and check host and port values
+
+    # instructions for deploying flask app to render.com: https://docs.render.com/deploy-flask
