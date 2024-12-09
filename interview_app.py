@@ -2,7 +2,7 @@ import pickle
 # we are going to use the flask micro web framework
 from flask import Flask, request, jsonify
 
-app = flask(__name__)
+app = Flask(__name__)
 
 
 def load_model():
